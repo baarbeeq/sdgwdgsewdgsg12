@@ -197,7 +197,13 @@
         .select('*')
         .order('username', { ascending: true });
 
-      if (error) return console.error(error);
+      if (error) {
+        console.error("Полная ошибка Supabase:", error);
+        alert("Ошибка: " + error.message);
+      } else {
+        console.log("Статус успешно обновлен!");
+        fetchGroup();
+      }
 
       // Отрисовка списка пользователей
       const list = document.getElementById('groupList');
