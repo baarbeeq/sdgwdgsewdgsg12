@@ -1,0 +1,58 @@
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+  // Конфигурация Supabase
+  const URL = 'https://rncerhgizyhovbdpqnl.supabase.co';
+  const KEY = 'sb_publishable_ThtftS6uBeaKf8FyndIFTg_OOHMJ5yh';
+  const supabase = createClient(URL, KEY);
+
+  const MY_ID = '0d4fd120-4620-4d2b-b69c-52be85deaf7c';
+
+  // Функция смены статуса (доступна глобально через window)
+  window.changeStatus = async (text, color) => {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ status: text, color: color })
+      .eq('id', MY_ID);
+
+    if (error) {
+      alert("Ошибка! Проверьте RLS политики в Supabase.");
+      console.error(error);
+    } else {
+      fetchGroup();
+    }
+  };
+
+  // Функция получения данных группы
+  async function fetchGroup() {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('username', { ascending: true });
+
+    if (error) return console.error(error);
+
+    // Отрисовка списка пользователей
+    const list = document.getElementById('groupList');
+    list.innerHTML = data.map(user => `
+      <div class="user-item">
+        <div class="status-dot" style="background: ${user.color || '#ccc'}"></div>
+        <div style="flex-grow: 1;">
+          <strong>${user.username}</strong><br>
+          <small style="color: #666;">${user.status || 'Статус не задан'}</small>
+        </div>
+      </div>
+    `).join('');
+
+    // Обновление информации о текущем пользователе
+    const me = data.find(u => u.id === MY_ID);
+    if (me) {
+      const myInfo = document.getElementById('myInfo');
+      if (myInfo) myInfo.innerText = `Вы зашли как: ${me.username}`;
+    }
+  }
+
+  // Первоначальный вызов и запуск обновления каждые 5 секунд
+  fetchGroup();
+  setInterval(fetchGroup, 5000);
+</script>
